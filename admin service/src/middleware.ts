@@ -15,32 +15,39 @@ interface Iuser {
   playlist: string[];
 }
 
-interface authenticatedRequested extends Request {
-  user: Iuser | null;
+interface authenticatedRequest extends Request {
+  user?: Iuser | null;
 }
 
 export const isAuth = async (
-  req: authenticatedRequested,
+  req: authenticatedRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
     const token = req.headers.token as string;
-
     if (!token) {
       res.status(403).json({ message: "please login !" });
       return;
     }
 
-    const { data } = await axios.get(`${process.env.User_URL}/api/user/v1/me`, {
+    const { data } = await axios.get(`${process.env.User_URL}/api/v1/user/me`, {
       headers: { token },
     });
 
     req.user = data;
-
     next();
-    
   } catch (error) {
-    res.status(403).json({ message: "please login !" });
+    res.status(403).json({ message: "please login ! middleware" });
   }
 };
+
+//-------------Multer setup----------------------------------------------
+
+import multer from "multer";
+
+const storage = multer.memoryStorage();
+
+const uploadFile = multer({ storage }).single("file");
+
+export default uploadFile;
